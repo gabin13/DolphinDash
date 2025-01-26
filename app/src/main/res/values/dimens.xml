@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dimensions existantes -->
+    <!-- Screen padding -->
+    <dimen name="screen_padding">16dp</dimen>
+
+    <!-- Logo dimensions -->
+    <dimen name="logo_margin_top">24dp</dimen>
+    <dimen name="logo_max_width">250dp</dimen>
+
+    <!-- Play button dimensions -->
+    <dimen name="play_button_margin_top">40dp</dimen>
+    <dimen name="play_button_text_size">24sp</dimen>
+    <dimen name="play_button_padding_horizontal">40dp</dimen>
+    <dimen name="play_button_padding_vertical">12dp</dimen>
+    <dimen name="play_button_min_width">200dp</dimen>
+    <dimen name="play_button_min_height">56dp</dimen>
+
+    <!-- Score section dimensions -->
+    <dimen name="score_margin_bottom">100dp</dimen>
+    <dimen name="score_text_size">24sp</dimen>
+    <dimen name="high_score_text_size">20sp</dimen>
+    <dimen name="high_score_margin_top">8dp</dimen>
+
+    <!-- Navigation dimensions -->
+    <dimen name="nav_height">80dp</dimen>
+    <dimen name="nav_border_height">2dp</dimen>
+    <dimen name="nav_padding_horizontal">16dp</dimen>
+    <dimen name="nav_divider_width">1dp</dimen>
+    <dimen name="nav_divider_height">40dp</dimen>
+    <dimen name="nav_icon_size">48dp</dimen>
+
+    <!-- Nouvelles dimensions pour le jeu -->
+    <dimen name="game_pause_button_size">48dp</dimen>
+    <dimen name="game_pause_button_margin">16dp</dimen>
+    <dimen name="game_score_padding">16dp</dimen>
+    <dimen name="game_dolphin_min_size">80dp</dimen>
+</resources>
