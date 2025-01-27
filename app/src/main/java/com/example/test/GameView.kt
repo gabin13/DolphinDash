@@ -6,6 +6,8 @@ import android.content.Intent
 import android.graphics.*
 import android.media.MediaPlayer
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.util.Log
@@ -13,7 +15,6 @@ import android.view.MotionEvent
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 import com.example.test.database.DatabaseHelper
-
 
 class GameView(context: Context) : SurfaceView(context), Runnable {
 
@@ -32,16 +33,30 @@ class GameView(context: Context) : SurfaceView(context), Runnable {
     private var velocity = 0f
     private var isTouching = false
 
+    // Bitmaps pour l'animation du dauphin
+    private val dolphinFrames = arrayOf(
+        R.drawable.frame1,
+        R.drawable.frame2,
+        R.drawable.frame3,
+        R.drawable.frame4,
+        R.drawable.frame5
+    )
+    private var currentFrame = 0
+    private lateinit var dolphinBitmaps: List<Bitmap>
+
+    // Gestion de l'animation des frames
+    private var lastFrameChangeTime = 0L
+    private val frameChangeInterval = 100L // Temps entre chaque changement de frame en ms
+
     // Score et temps
     private var score: Double = 0.0
     private var scoreUpdateListener: ((Double) -> Unit)? = null
     private var lastScoreUpdateTime: Long = System.currentTimeMillis()
 
     // Base de données
-    private val dbHelper = DatabaseHelper(context) // Instanciation de l'helper SQLite
+    private val dbHelper = DatabaseHelper(context)
 
     // Bitmaps
-    private lateinit var dolphinBitmap: Bitmap
     private lateinit var sharkBitmap: Bitmap
     private lateinit var dangerBitmap: Bitmap
 
@@ -67,7 +82,7 @@ class GameView(context: Context) : SurfaceView(context), Runnable {
         var dangerTimer: Long = System.currentTimeMillis(),
         val dangerDuration: Long = 1000
     ) {
-        private val hitboxScale = 0f  // Hitbox réduite à 60% de la taille
+        private val hitboxScale = 0.6f
         private val hitboxOffsetX = (width * (1 - hitboxScale) / 2)
         private val hitboxOffsetY = (height * (1 - hitboxScale) / 2)
         private val hitboxWidth = width * hitboxScale
@@ -93,16 +108,10 @@ class GameView(context: Context) : SurfaceView(context), Runnable {
             }
         }
 
-
         fun isOffScreen(): Boolean = x < -width
     }
 
     init {
-        // Charger les images originales
-        val originalDolphinBitmap = BitmapFactory.decodeResource(resources, R.drawable.dolphin)
-        val originalSharkBitmap = BitmapFactory.decodeResource(resources, R.drawable.ic_shark)
-        val originalDangerBitmap = BitmapFactory.decodeResource(resources, R.drawable.ic_danger)
-
         // Charger la musique de fond
         mediaPlayer = MediaPlayer.create(context, R.raw.background_music)
         mediaPlayer?.isLooping = true
@@ -110,30 +119,25 @@ class GameView(context: Context) : SurfaceView(context), Runnable {
 
         holder.addCallback(object : SurfaceHolder.Callback {
             override fun surfaceCreated(holder: SurfaceHolder) {
-                initializeGame(originalDolphinBitmap, originalSharkBitmap, originalDangerBitmap)
+                initializeGame()
                 startGame()
             }
 
             override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
                 screenWidth = width
                 screenHeight = height
-                initializeGame(originalDolphinBitmap, originalSharkBitmap, originalDangerBitmap)
+                initializeGame()
             }
 
             override fun surfaceDestroyed(holder: SurfaceHolder) {
                 stopGame()
-                // Libérer les ressources de la musique
                 mediaPlayer?.stop()
                 mediaPlayer?.release()
             }
         })
     }
 
-    private fun initializeGame(
-        originalDolphinBitmap: Bitmap,
-        originalSharkBitmap: Bitmap,
-        originalDangerBitmap: Bitmap
-    ) {
+    private fun initializeGame() {
         screenWidth = width
         screenHeight = height
         score = 0.0
@@ -144,12 +148,30 @@ class GameView(context: Context) : SurfaceView(context), Runnable {
         dolphinWidth = maxOf(dolphinWidth, minDolphinSize)
         dolphinHeight = dolphinWidth
 
-        // Redimensionner les bitmaps
-        dolphinBitmap = Bitmap.createScaledBitmap(originalDolphinBitmap, dolphinWidth, dolphinHeight, false)
+        // Charger les frames pour l'animation
+        dolphinBitmaps = dolphinFrames.map { frameResId ->
+            Bitmap.createScaledBitmap(
+                BitmapFactory.decodeResource(resources, frameResId),
+                dolphinWidth,
+                dolphinHeight,
+                false
+            )
+        }
 
+        // Charger les autres bitmaps
         val sharkSize = (dolphinWidth * 2).toInt()
-        sharkBitmap = Bitmap.createScaledBitmap(originalSharkBitmap, sharkSize, sharkSize, false)
-        dangerBitmap = Bitmap.createScaledBitmap(originalDangerBitmap, sharkSize, sharkSize, false)
+        sharkBitmap = Bitmap.createScaledBitmap(
+            BitmapFactory.decodeResource(resources, R.drawable.ic_shark),
+            sharkSize,
+            sharkSize,
+            false
+        )
+        dangerBitmap = Bitmap.createScaledBitmap(
+            BitmapFactory.decodeResource(resources, R.drawable.ic_danger),
+            sharkSize,
+            sharkSize,
+            false
+        )
 
         // Position initiale du dauphin
         dolphinY = screenHeight / 2f - dolphinHeight / 2f
@@ -201,12 +223,14 @@ class GameView(context: Context) : SurfaceView(context), Runnable {
     private fun spawnShark() {
         val sharkSize = dolphinWidth
         val y = (Math.random() * (screenHeight - sharkSize)).toFloat()
-        sharks.add(Shark(
-            x = screenWidth.toFloat(),
-            y = y,
-            width = sharkSize,
-            height = sharkSize
-        ))
+        sharks.add(
+            Shark(
+                x = screenWidth.toFloat(),
+                y = y,
+                width = sharkSize,
+                height = sharkSize
+            )
+        )
     }
 
     private fun draw() {
@@ -223,9 +247,16 @@ class GameView(context: Context) : SurfaceView(context), Runnable {
                 }
             }
 
+            // Mise à jour de l'animation du dauphin
+            val currentTime = System.currentTimeMillis()
+            if (currentTime - lastFrameChangeTime >= frameChangeInterval) {
+                currentFrame = (currentFrame + 1) % dolphinBitmaps.size
+                lastFrameChangeTime = currentTime
+            }
+
             // Position du dauphin
             val dolphinX = screenWidth * 0.15f
-            canvas.drawBitmap(dolphinBitmap, dolphinX, dolphinY, paint)
+            canvas.drawBitmap(dolphinBitmaps[currentFrame], dolphinX, dolphinY, paint)
 
             holder.unlockCanvasAndPost(canvas)
         }
@@ -364,6 +395,4 @@ class GameView(context: Context) : SurfaceView(context), Runnable {
     fun setOnGameEndListener(listener: () -> Unit) {
         onGameEndListener = listener
     }
-
-
 }

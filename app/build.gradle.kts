@@ -29,7 +29,6 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
-
     }
     kotlinOptions {
         jvmTarget = "11"
@@ -47,4 +46,11 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     implementation(libs.androidx.constraintlayout.v214)
+
+    // Ajout de Glide
+    implementation("com.github.bumptech.glide:glide:4.15.1")
+    annotationProcessor("com.github.bumptech.glide:compiler:4.15.1") // Obligatoire pour certaines fonctionnalités avancées
+
+    // Ajout de la bibliothèque Koral GIF Drawable pour Canvas
+    implementation("pl.droidsonroids.gif:android-gif-drawable:1.2.25")
 }
