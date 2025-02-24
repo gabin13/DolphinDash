@@ -28,12 +28,12 @@ class GameView(context: Context) : SurfaceView(context), Runnable {
     private var dolphinWidth = 0
     private var dolphinHeight = 0
 
-    // Positions et mouvements
+    // Positions et mouvements du dauphin
     private var dolphinY = 0f
     private var velocity = 0f
     private var isTouching = false
 
-    // Bitmaps pour l'animation du dauphin
+    // Animation du dauphin
     private val dolphinFrames = arrayOf(
         R.drawable.frame1,
         R.drawable.frame2,
@@ -43,10 +43,26 @@ class GameView(context: Context) : SurfaceView(context), Runnable {
     )
     private var currentFrame = 0
     private lateinit var dolphinBitmaps: List<Bitmap>
-
-    // Gestion de l'animation des frames
     private var lastFrameChangeTime = 0L
-    private val frameChangeInterval = 100L // Temps entre chaque changement de frame en ms
+    private val frameChangeInterval = 100L  // en ms
+
+    // Animation du requin
+    private val sharkFrames = arrayOf(
+        R.drawable.frame01_shark,
+        R.drawable.frame02_shark,
+        R.drawable.frame03_shark,
+        R.drawable.frame04_shark,
+        R.drawable.frame05_shark,
+        R.drawable.frame06_shark,
+        R.drawable.frame07_shark,
+        R.drawable.frame08_shark,
+        R.drawable.frame09_shark,
+        R.drawable.frame10_shark
+    )
+    private lateinit var sharkBitmaps: List<Bitmap>
+
+    // Image statique de danger pour le requin
+    private lateinit var dangerBitmap: Bitmap
 
     // Score et temps
     private var score: Double = 0.0
@@ -55,10 +71,6 @@ class GameView(context: Context) : SurfaceView(context), Runnable {
 
     // Base de données
     private val dbHelper = DatabaseHelper(context)
-
-    // Bitmaps
-    private lateinit var sharkBitmap: Bitmap
-    private lateinit var dangerBitmap: Bitmap
 
     // Requins
     private val sharks = mutableListOf<Shark>()
@@ -82,6 +94,10 @@ class GameView(context: Context) : SurfaceView(context), Runnable {
         var dangerTimer: Long = System.currentTimeMillis(),
         val dangerDuration: Long = 1000
     ) {
+        // Variables d'animation propres à chaque requin
+        var currentFrame = 0
+        var lastFrameChangeTime = 0L
+
         private val hitboxScale = 0.6f
         private val hitboxOffsetX = (width * (1 - hitboxScale) / 2)
         private val hitboxOffsetY = (height * (1 - hitboxScale) / 2)
@@ -101,10 +117,14 @@ class GameView(context: Context) : SurfaceView(context), Runnable {
             if (showingDanger) {
                 if (System.currentTimeMillis() - dangerTimer >= dangerDuration) {
                     showingDanger = false
-                    Log.d("Shark", "Danger masqué après ${dangerDuration}ms")
                 }
             } else {
                 x -= scrollSpeed * 1.5f
+                val currentTime = System.currentTimeMillis()
+                if (currentTime - lastFrameChangeTime >= frameChangeInterval) {
+                    currentFrame = (currentFrame + 1) % sharkBitmaps.size
+                    lastFrameChangeTime = currentTime
+                }
             }
         }
 
@@ -112,7 +132,6 @@ class GameView(context: Context) : SurfaceView(context), Runnable {
     }
 
     init {
-        // Charger la musique de fond
         mediaPlayer = MediaPlayer.create(context, R.raw.background_music)
         mediaPlayer?.isLooping = true
         mediaPlayer?.start()
@@ -122,13 +141,11 @@ class GameView(context: Context) : SurfaceView(context), Runnable {
                 initializeGame()
                 startGame()
             }
-
             override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
                 screenWidth = width
                 screenHeight = height
                 initializeGame()
             }
-
             override fun surfaceDestroyed(holder: SurfaceHolder) {
                 stopGame()
                 mediaPlayer?.stop()
@@ -148,24 +165,27 @@ class GameView(context: Context) : SurfaceView(context), Runnable {
         dolphinWidth = maxOf(dolphinWidth, minDolphinSize)
         dolphinHeight = dolphinWidth
 
-        // Charger les frames pour l'animation
-        dolphinBitmaps = dolphinFrames.map { frameResId ->
+        // Charger les frames pour l'animation du dauphin
+        dolphinBitmaps = dolphinFrames.map { resId ->
             Bitmap.createScaledBitmap(
-                BitmapFactory.decodeResource(resources, frameResId),
+                BitmapFactory.decodeResource(resources, resId),
                 dolphinWidth,
                 dolphinHeight,
                 false
             )
         }
 
-        // Charger les autres bitmaps
+        // Charger les bitmaps pour l'animation du requin
         val sharkSize = (dolphinWidth * 2).toInt()
-        sharkBitmap = Bitmap.createScaledBitmap(
-            BitmapFactory.decodeResource(resources, R.drawable.ic_shark),
-            sharkSize,
-            sharkSize,
-            false
-        )
+        sharkBitmaps = sharkFrames.map { resId ->
+            Bitmap.createScaledBitmap(
+                BitmapFactory.decodeResource(resources, resId),
+                sharkSize,
+                sharkSize,
+                false
+            )
+        }
+        // Charger l'image de danger pour le requin
         dangerBitmap = Bitmap.createScaledBitmap(
             BitmapFactory.decodeResource(resources, R.drawable.ic_danger),
             sharkSize,
@@ -190,13 +210,10 @@ class GameView(context: Context) : SurfaceView(context), Runnable {
         if (isTouching) {
             velocity = -(screenHeight * 0.02f)
         }
-
-        // Gravité adaptée à la taille de l'écran
         val gravity = screenHeight * 0.003f
         velocity += gravity
         dolphinY += velocity
 
-        // Limites de l'écran
         if (dolphinY < 0) {
             dolphinY = 0f
             velocity = 0f
@@ -206,7 +223,6 @@ class GameView(context: Context) : SurfaceView(context), Runnable {
             velocity = 0f
         }
 
-        // Gestion des requins
         val currentTime = System.currentTimeMillis()
         if (currentTime - lastSharkSpawnTime >= nextSharkSpawnTime) {
             spawnShark()
@@ -238,12 +254,12 @@ class GameView(context: Context) : SurfaceView(context), Runnable {
             val canvas = holder.lockCanvas()
             canvas.drawColor(Color.CYAN)
 
-            // Dessiner les requins et les dangers
+            // Dessiner les requins et leur état danger
             sharks.forEach { shark ->
                 if (shark.showingDanger) {
                     canvas.drawBitmap(dangerBitmap, shark.x, shark.y, paint)
                 } else {
-                    canvas.drawBitmap(sharkBitmap, shark.x, shark.y, paint)
+                    canvas.drawBitmap(sharkBitmaps[shark.currentFrame], shark.x, shark.y, paint)
                 }
             }
 
@@ -254,7 +270,6 @@ class GameView(context: Context) : SurfaceView(context), Runnable {
                 lastFrameChangeTime = currentTime
             }
 
-            // Position du dauphin
             val dolphinX = screenWidth * 0.15f
             canvas.drawBitmap(dolphinBitmaps[currentFrame], dolphinX, dolphinY, paint)
 
@@ -262,65 +277,54 @@ class GameView(context: Context) : SurfaceView(context), Runnable {
         }
     }
 
-    private fun saveScore() {
-        val playerName = "Player"
-        dbHelper.addScore(playerName, score.toInt())
-        Log.d("GameView", "Score sauvegardé: $playerName - $score")
-        onGameEndListener?.invoke() // Notifie GameActivity
-    }
-
-
     private fun checkCollisions() {
         val dolphinX = screenWidth * 0.15f
         val dolphinHitbox = RectF(
             dolphinX, dolphinY, dolphinX + dolphinWidth, dolphinY + dolphinHeight
         )
-
         sharks.forEach { shark ->
             if (!shark.showingDanger && RectF.intersects(dolphinHitbox, shark.getHitbox())) {
                 isPlaying = false
-                saveScore() // Sauvegarde lors de la collision
+                saveScore()
                 showGameOverDialog()
-
-                // Vibration lors de la collision
                 vibrateOnCollision()
             }
         }
     }
 
+    private fun saveScore() {
+        val playerName = "Player"
+        dbHelper.addScore(playerName, score.toInt())
+        Log.d("GameView", "Score sauvegardé: $playerName - $score")
+        onGameEndListener?.invoke()
+    }
+
     private fun vibrateOnCollision() {
         val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
-
-        // Si l'API est compatible (Android 26+), utiliser la vibration avec un effet personnalisé
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val vibrationEffect = VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE)
             vibrator?.vibrate(vibrationEffect)
         } else {
-            // Pour les versions inférieures à Android 26, utiliser la méthode classique
             vibrator?.vibrate(500)
         }
     }
 
     private fun showGameOverDialog() {
         pauseGame()
-
         post {
             AlertDialog.Builder(context)
                 .setTitle("Game Over")
                 .setNegativeButton("Quitter") { _, _ ->
-                    // Lancer MainActivity avec le score actuel
                     val intent = Intent(context, MainActivity::class.java)
-                    intent.putExtra("lastScore", score) // Ajouter le dernier score
+                    intent.putExtra("lastScore", score)
                     intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
                     context.startActivity(intent)
-                    (context as? GameActivity)?.finish() // Fermer GameActivity
+                    (context as? GameActivity)?.finish()
                 }
                 .setCancelable(false)
                 .show()
         }
     }
-
-
 
     override fun onTouchEvent(event: MotionEvent?): Boolean {
         when (event?.action) {
@@ -377,7 +381,7 @@ class GameView(context: Context) : SurfaceView(context), Runnable {
         } catch (e: InterruptedException) {
             e.printStackTrace()
         }
-        mediaPlayer?.pause()  // Pause la musique
+        mediaPlayer?.pause()
     }
 
     fun resumeGame() {
@@ -387,11 +391,10 @@ class GameView(context: Context) : SurfaceView(context), Runnable {
             thread = Thread(this)
             thread?.start()
         }
-        mediaPlayer?.start()  // Reprend la musique
+        mediaPlayer?.start()
     }
 
     private var onGameEndListener: (() -> Unit)? = null
-
     fun setOnGameEndListener(listener: () -> Unit) {
         onGameEndListener = listener
     }
