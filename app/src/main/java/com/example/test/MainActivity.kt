@@ -1,22 +1,28 @@
 package com.example.test
-import android.net.Uri
+import android.content.Context
+import android.os.Build
 import android.os.Bundle
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.Toast
-import android.widget.VideoView
 import androidx.appcompat.app.AppCompatActivity
-import com.example.test.R
 import android.content.Intent
+import android.os.Vibrator
 import android.util.Log
+import android.widget.CheckBox
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import com.example.test.database.DatabaseHelper
 
 
 class MainActivity : AppCompatActivity() {
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
 
         val dbHelper = DatabaseHelper(this)
 
@@ -29,16 +35,7 @@ class MainActivity : AppCompatActivity() {
         val highScoreTextView = findViewById<TextView>(R.id.highScoreText)
         highScoreTextView.text = "Best : $highestScore"
 
-        // Configurer la vidéo d'arrière-plan
-        //val videoView = findViewById<VideoView>(R.id.videoBackground)
-        //val videoUri = Uri.parse("android.resource://" + packageName + "/" + R.raw.background_ocean)
-        //videoView.setVideoURI(videoUri)
 
-        // Lancer la vidéo en boucle
-        //videoView.setOnPreparedListener { mediaPlayer ->
-            //mediaPlayer.isLooping = true
-            //mediaPlayer.start()
-        //}
 
         // Gérer le bouton PLAY
         val playButton = findViewById<Button>(R.id.playButton)
@@ -48,14 +45,16 @@ class MainActivity : AppCompatActivity() {
         }
 
         // Gérer les icônes du menu inférieur
-        val homeButton = findViewById<ImageButton>(R.id.homeButton)
-        homeButton.setOnClickListener {
+        val inventaireButton = findViewById<ImageButton>(R.id.inventaireButton)
+        inventaireButton.setOnClickListener {
             Toast.makeText(this, "Inventory clicked!", Toast.LENGTH_SHORT).show()
+
         }
 
         val settingsButton = findViewById<ImageButton>(R.id.settingsButton)
         settingsButton.setOnClickListener {
             Toast.makeText(this, "Settings clicked!", Toast.LENGTH_SHORT).show()
+            showSettingsDialog()
         }
 
         val scoresButton = findViewById<ImageButton>(R.id.scoresButton)
@@ -67,6 +66,47 @@ class MainActivity : AppCompatActivity() {
         shopButton.setOnClickListener {
             Toast.makeText(this, "Shop clicked!", Toast.LENGTH_SHORT).show()
         }
+    }
+    // Load vibration setting from SharedPreferences
+    private fun loadVibrationSetting(): Boolean {
+        val sharedPreferences = getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
+        return sharedPreferences.getBoolean("vibration_enabled", true)  // Default to true if not set
+    }
 
+    private fun showSettingsDialog() {
+        // Initialize dialog view
+        val dialogView = layoutInflater.inflate(R.layout.dialog_settings, null)
+
+        // Find the checkbox for vibration in the dialog
+        val vibrationCheckBox: CheckBox = dialogView.findViewById(R.id.vibrationCheckBox)
+
+        // Load current vibration setting from SharedPreferences
+        vibrationCheckBox.isChecked = loadVibrationSetting()
+
+        // Set listener for checkbox change
+        vibrationCheckBox.setOnCheckedChangeListener { _, isChecked ->
+            // Save the new vibration setting when the checkbox is toggled
+            saveVibrationSetting(isChecked)
+            // Optionally, you can perform any immediate action here, like showing a Toast.
+            Toast.makeText(this, "Vibration ${if (isChecked) "Enabled" else "Disabled"}", Toast.LENGTH_SHORT).show()
+        }
+
+        // Create the AlertDialog
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("Settings")
+            .setView(dialogView)
+            .setPositiveButton("OK") { dialog, _ -> dialog.dismiss() }
+            .setNegativeButton("Cancel") { dialog, _ -> dialog.dismiss() }
+            .create()
+
+        dialog.show()
+    }
+
+    // Save vibration setting to SharedPreferences
+    private fun saveVibrationSetting(isEnabled: Boolean) {
+        val sharedPreferences = getSharedPreferences("app_preferences", MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+        editor.putBoolean("vibration_enabled", isEnabled)  // Save the vibration setting
+        editor.apply()
     }
 }

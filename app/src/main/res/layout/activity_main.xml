@@ -125,7 +125,7 @@
             app:layout_constraintBottom_toBottomOf="parent">
 
             <ImageButton
-                android:id="@+id/homeButton"
+                android:id="@+id/inventaireButton"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"

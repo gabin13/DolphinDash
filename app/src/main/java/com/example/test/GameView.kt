@@ -293,21 +293,46 @@ class GameView(context: Context) : SurfaceView(context), Runnable {
     }
 
     private fun saveScore() {
+        val scoreValue = score
         val playerName = "Player"
-        dbHelper.addScore(playerName, score.toInt())
-        Log.d("GameView", "Score sauvegardé: $playerName - $score")
+        var bestScore = dbHelper.getHighestScoreAsInt()
+        val lastScore = score
+        if(score > bestScore){
+            bestScore = score.toInt()
+        }
+        dbHelper.addScore(bestScore, lastScore)
+        Log.d("GameView", "Score saved: $playerName - $scoreValue")
+        Log.d("GameView", "Best Score: $bestScore, Last Score: $lastScore")
         onGameEndListener?.invoke()
     }
 
+    // Load vibration setting (called from GameView)
+    private fun loadVibrationSetting(): Boolean {
+        val sharedPreferences = context.getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
+        val vibrationEnabled = sharedPreferences.getBoolean("vibration_enabled", true)  // Default to true if not set
+        Log.d("GameView", "Vibration enabled: $vibrationEnabled")  // Debugging line
+        return vibrationEnabled
+    }
     private fun vibrateOnCollision() {
-        val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val vibrationEffect = VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE)
-            vibrator?.vibrate(vibrationEffect)
-        } else {
-            vibrator?.vibrate(500)
+        if (loadVibrationSetting()) {
+            val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val vibrationEffect = VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE)
+                vibrator?.vibrate(vibrationEffect)
+            } else {
+                vibrator?.vibrate(500)
+            }
         }
     }
+//    private fun vibrateOnCollision2() {
+//        val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//            val vibrationEffect = VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE)
+//            vibrator?.vibrate(vibrationEffect)
+//        } else {
+//            vibrator?.vibrate(500)
+//        }
+//    }
 
     private fun showGameOverDialog() {
         pauseGame()
