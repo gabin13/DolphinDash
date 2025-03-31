@@ -13,16 +13,20 @@ import android.widget.CheckBox
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import com.example.test.database.DatabaseHelper
+import android.media.MediaPlayer
 
 
 class MainActivity : AppCompatActivity() {
 
+    private lateinit var mediaPlayer: MediaPlayer
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        mediaPlayer = MediaPlayer.create(this, R.raw.background_music)
+
 
         val dbHelper = DatabaseHelper(this)
 
@@ -72,6 +76,11 @@ class MainActivity : AppCompatActivity() {
         val sharedPreferences = getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
         return sharedPreferences.getBoolean("vibration_enabled", true)  // Default to true if not set
     }
+    // Load vibration setting from SharedPreferences
+    private fun loadSoundSetting(): Boolean {
+        val sharedPreferences = getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
+        return sharedPreferences.getBoolean("SOUND_PREF", true)  // Default to true if not set
+    }
 
     private fun showSettingsDialog() {
         // Initialize dialog view
@@ -80,8 +89,14 @@ class MainActivity : AppCompatActivity() {
         // Find the checkbox for vibration in the dialog
         val vibrationCheckBox: CheckBox = dialogView.findViewById(R.id.vibrationCheckBox)
 
+        // Find the checkbox for sound  in the dialog
+        val soundCheckBox: CheckBox = dialogView.findViewById(R.id.soundCheckBox)
+
         // Load current vibration setting from SharedPreferences
         vibrationCheckBox.isChecked = loadVibrationSetting()
+
+        // Load current sound setting from SharedPreferences
+        soundCheckBox.isChecked = loadSoundSetting()
 
         // Set listener for checkbox change
         vibrationCheckBox.setOnCheckedChangeListener { _, isChecked ->
@@ -90,6 +105,16 @@ class MainActivity : AppCompatActivity() {
             // Optionally, you can perform any immediate action here, like showing a Toast.
             Toast.makeText(this, "Vibration ${if (isChecked) "Enabled" else "Disabled"}", Toast.LENGTH_SHORT).show()
         }
+
+        // Set listener for checkbox change
+        soundCheckBox.setOnCheckedChangeListener { _, isChecked ->
+            // Save the new sound setting when the checkbox is toggled
+            saveSoundSetting(isChecked)
+
+            // Optionally, you can perform any immediate action here, like showing a Toast.
+            Toast.makeText(this, "Sound ${if (isChecked) "Enabled" else "Disabled"}", Toast.LENGTH_SHORT).show()
+        }
+
 
         // Create the AlertDialog
         val dialog = AlertDialog.Builder(this)
@@ -108,5 +133,14 @@ class MainActivity : AppCompatActivity() {
         val editor = sharedPreferences.edit()
         editor.putBoolean("vibration_enabled", isEnabled)  // Save the vibration setting
         editor.apply()
+    }
+
+    // Save sound setting to SharedPreferences
+    private fun saveSoundSetting(isEnabled: Boolean) {
+        val sharedPreferences = getSharedPreferences("app_preferences", MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+        editor.putBoolean("SOUND_PREF", isEnabled)  // Save the vibration setting
+        editor.apply()
+
     }
 }

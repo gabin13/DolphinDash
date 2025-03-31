@@ -2,6 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:background="@color/white"
     android:orientation="vertical"
     android:padding="16dp">
 
@@ -10,15 +11,16 @@
         android:id="@+id/soundCheckBox"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:checked="true"
         android:text="Enable Sound"
-        android:checked="true" />
+        android:textColorLink="#00BCD4" />
 
     <!-- Vibration CheckBox -->
     <CheckBox
         android:id="@+id/vibrationCheckBox"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Enable Vibration"
-        android:checked="true" />
+        android:checked="true"
+        android:text="Enable Vibration" />
 </LinearLayout>
 <!-- vfddgvd -->
