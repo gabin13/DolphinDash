@@ -75,7 +75,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun showSettingsDialog() {
         // Initialize dialog view
-        val dialogView = layoutInflater.inflate(layout.dialog_settings, null)
+        val dialogView = layoutInflater.inflate(R.layout.dialog_settings, null)
 
         // Find the checkbox for vibration in the dialog
         val vibrationCheckBox: CheckBox = dialogView.findViewById(R.id.vibrationCheckBox)
