@@ -51,7 +51,6 @@ class GameView(context: Context) : SurfaceView(context), Runnable {
         R.drawable.frame01_shark,
         R.drawable.frame02_shark,
         R.drawable.frame03_shark,
-        R.drawable.frame04_shark,
         R.drawable.frame05_shark,
         R.drawable.frame06_shark,
         R.drawable.frame07_shark,
