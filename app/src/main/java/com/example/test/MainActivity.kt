@@ -1,4 +1,5 @@
 package com.example.test
+import MarginItemDecoration
 import android.content.Context
 import android.os.Build
 import android.os.Bundle
@@ -14,15 +15,52 @@ import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import com.example.test.database.DatabaseHelper
 import android.media.MediaPlayer
+import android.view.View
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.google.firebase.firestore.FirebaseFirestore
 
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var mediaPlayer: MediaPlayer
 
+    private lateinit var recyclerView: RecyclerView
+    private lateinit var adapter: ItemAdapter
+    private val itemList = mutableListOf<Item>()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        recyclerView = findViewById(R.id.recyclerView)
+        recyclerView.layoutManager = LinearLayoutManager(this)
+        adapter = ItemAdapter(this, itemList)
+        recyclerView.adapter = adapter
+        val spanCount = 4 // number of columns
+        val spacing = 32  // spacing in px (you can convert dp to px)
+        val includeEdge = true
+
+        recyclerView.layoutManager = GridLayoutManager(this, spanCount)
+        recyclerView.addItemDecoration(MarginItemDecoration(spanCount, spacing, includeEdge))
+
+        var isShopVisible = false
+
+        val db = FirebaseFirestore.getInstance()
+        db.collection("Boutique")
+            .get()
+            .addOnSuccessListener { result ->
+                itemList.clear()
+                for (document in result) {
+                    val item = document.toObject(Item::class.java)
+                    itemList.add(item)
+                }
+                adapter.notifyDataSetChanged()
+            }
+            .addOnFailureListener { exception ->
+                Toast.makeText(this, "Erreur: ${exception.message}", Toast.LENGTH_LONG).show()
+            }
 
         val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
         mediaPlayer = MediaPlayer.create(this, R.raw.background_music)
@@ -66,9 +104,13 @@ class MainActivity : AppCompatActivity() {
             Toast.makeText(this, "Missions clicked!", Toast.LENGTH_SHORT).show()
         }
 
+        val shopBackgroundView = findViewById<View>(R.id.shopBackground)
         val shopButton = findViewById<ImageButton>(R.id.shopButton)
         shopButton.setOnClickListener {
             Toast.makeText(this, "Shop clicked!", Toast.LENGTH_SHORT).show()
+            isShopVisible = !isShopVisible
+            recyclerView.visibility = if (isShopVisible) View.VISIBLE else View.GONE
+            shopBackgroundView.visibility = if (isShopVisible) View.VISIBLE else View.GONE
         }
     }
     // Load vibration setting from SharedPreferences

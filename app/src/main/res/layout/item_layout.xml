@@ -1,0 +1,58 @@
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    android:layout_width="160dp"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    card_view:cardCornerRadius="16dp"
+    card_view:cardElevation="6dp">
+
+    <LinearLayout
+        android:layout_width="160dp"
+        android:layout_height="140dp"
+        android:orientation="vertical"
+        android:background="#AA000000"
+        android:padding="8dp">
+
+        <ImageView
+            android:id="@+id/imageItem"
+            android:layout_width="70dp"
+            android:layout_height="70dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginLeft="20dp"
+            android:scaleType="centerCrop" />
+
+        <TextView
+            android:id="@+id/nomItem"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Nom de l'item"
+            android:textColor="#FFFFFF"
+            android:layout_marginTop="8dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/prixItem"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="99 €"
+                android:textColor="#FFFFFF" />
+
+            <Button
+                android:id="@+id/buyButton"
+                android:layout_width="85dp"
+                android:layout_height="40dp"
+                android:text="Acheter"
+                android:textSize="10sp"
+                android:layout_gravity="center_vertical"
+                android:layout_marginLeft="10dp"
+                android:textColor="#000000"
+                android:background="#259FC5"
+                />
+
+        </LinearLayout>
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

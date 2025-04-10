@@ -50,10 +50,7 @@ class GameActivity : AppCompatActivity() {
                 pauseButton.setImageResource(R.drawable.ic_play)
             }
         }
-
-
     }
-
 
     override fun onPause() {
         super.onPause()
