@@ -131,9 +131,15 @@ class GameView(context: Context) : SurfaceView(context), Runnable {
     }
 
     init {
-        mediaPlayer = MediaPlayer.create(context, R.raw.background_music)
-        mediaPlayer?.isLooping = true
-        mediaPlayer?.start()
+
+        val sharedPreferences = context.getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
+        val isEnabled = sharedPreferences.getBoolean("SOUND_PREF", true)  // Default to true if not set
+        if (isEnabled) {
+            mediaPlayer = MediaPlayer.create(context, R.raw.background_music)
+            mediaPlayer?.isLooping = true
+            mediaPlayer?.start()
+        }
+
 
         holder.addCallback(object : SurfaceHolder.Callback {
             override fun surfaceCreated(holder: SurfaceHolder) {
@@ -147,8 +153,11 @@ class GameView(context: Context) : SurfaceView(context), Runnable {
             }
             override fun surfaceDestroyed(holder: SurfaceHolder) {
                 stopGame()
-                mediaPlayer?.stop()
-                mediaPlayer?.release()
+                if (isEnabled){
+                    mediaPlayer?.stop()
+                    mediaPlayer?.release()
+                }
+
             }
         })
     }
@@ -323,15 +332,6 @@ class GameView(context: Context) : SurfaceView(context), Runnable {
             }
         }
     }
-//    private fun vibrateOnCollision2() {
-//        val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-//            val vibrationEffect = VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE)
-//            vibrator?.vibrate(vibrationEffect)
-//        } else {
-//            vibrator?.vibrate(500)
-//        }
-//    }
 
     private fun showGameOverDialog() {
         pauseGame()
