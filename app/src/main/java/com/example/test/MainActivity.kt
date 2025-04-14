@@ -19,7 +19,8 @@ import android.view.View
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 
 
 class MainActivity : AppCompatActivity() {
@@ -47,7 +48,7 @@ class MainActivity : AppCompatActivity() {
 
         var isShopVisible = false
 
-        val db = FirebaseFirestore.getInstance()
+        val db = Firebase.firestore
         db.collection("Boutique")
             .get()
             .addOnSuccessListener { result ->
@@ -59,6 +60,7 @@ class MainActivity : AppCompatActivity() {
                 adapter.notifyDataSetChanged()
             }
             .addOnFailureListener { exception ->
+                Log.e("FirestoreError", "Error fetching documents", exception)
                 Toast.makeText(this, "Erreur: ${exception.message}", Toast.LENGTH_LONG).show()
             }
 

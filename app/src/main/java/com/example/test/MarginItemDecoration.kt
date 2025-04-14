@@ -1,20 +1,25 @@
 import android.graphics.Rect
 import android.view.View
 import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.RecyclerView.ItemDecoration
 
+/**
+ * Classe pour ajouter des marges entre les éléments d'un RecyclerView avec GridLayoutManager
+ */
 class MarginItemDecoration(
-    private val spanCount: Int,       // Number of columns
-    private val spacing: Int,         // Space in px
-    private val includeEdge: Boolean  // Add spacing to edges or not
-) : RecyclerView.ItemDecoration() {
+    private val spanCount: Int,
+    private val spacing: Int,
+    private val includeEdge: Boolean
+) : ItemDecoration() {
 
     override fun getItemOffsets(
-        outRect: Rect, view: View,
+        outRect: Rect,
+        view: View,
         parent: RecyclerView,
         state: RecyclerView.State
     ) {
         val position = parent.getChildAdapterPosition(view) // item position
-        val column = position % spanCount                   // item column
+        val column = position % spanCount // item column
 
         if (includeEdge) {
             outRect.left = spacing - column * spacing / spanCount

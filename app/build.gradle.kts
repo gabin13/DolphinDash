@@ -44,11 +44,15 @@ dependencies {
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
     implementation(libs.firebase.firestore.ktx)
+    implementation(libs.firebase.common.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     implementation(libs.androidx.constraintlayout.v214)
-    implementation(platform("com.google.firebase:firebase-bom:33.12.0"))
+    implementation(platform("com.google.firebase:firebase-bom:32.6.0"))  // Version plus ancienne
+    implementation("com.google.firebase:firebase-firestore-ktx")
+    implementation("com.google.firebase:firebase-auth-ktx")
+    implementation("com.google.firebase:firebase-database-ktx")
 
     // Ajout de Glide
     implementation("com.github.bumptech.glide:glide:4.15.1")
