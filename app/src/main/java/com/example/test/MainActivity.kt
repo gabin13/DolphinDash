@@ -115,6 +115,11 @@ class MainActivity : AppCompatActivity() {
         val shopButton = findViewById<ImageButton>(R.id.shopButton)
 
         shopButton.setOnClickListener {
+
+            val intent = Intent(this, ShopActivity::class.java)
+            startActivity(intent)
+            Toast.makeText(this, "Shop", Toast.LENGTH_SHORT).show()
+
             Toast.makeText(this, "Shop clicked!", Toast.LENGTH_SHORT).show()
             isShopVisible = !isShopVisible
             recyclerView.visibility = if (isShopVisible) View.VISIBLE else View.GONE
