@@ -16,6 +16,8 @@ import androidx.appcompat.app.AlertDialog
 import com.example.test.database.DatabaseHelper
 import android.media.MediaPlayer
 import android.view.View
+import android.widget.ImageView
+import android.widget.LinearLayout
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -35,19 +37,15 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        val spanCount = 2 // number of columns
 
         apiServer = ApiServer(this)
-
+        
         recyclerView = findViewById(R.id.recyclerView)
-        recyclerView.layoutManager = LinearLayoutManager(this)
+        recyclerView.layoutManager = GridLayoutManager(this, spanCount)
         adapter = ItemAdapter(this, itemList)
         recyclerView.adapter = adapter
-        val spanCount = 4 // number of columns
-        val spacing = 32  // spacing in px (you can convert dp to px)
-        val includeEdge = true
-
-        recyclerView.layoutManager = GridLayoutManager(this, spanCount)
-        recyclerView.addItemDecoration(MarginItemDecoration(spanCount, spacing, includeEdge))
+        //recyclerView.addItemDecoration(MarginItemDecoration(spanCount, spacing, includeEdge))
 
         var isShopVisible = false
 
@@ -115,11 +113,19 @@ class MainActivity : AppCompatActivity() {
 
         val shopBackgroundView = findViewById<View>(R.id.shopBackground)
         val shopButton = findViewById<ImageButton>(R.id.shopButton)
+
         shopButton.setOnClickListener {
             Toast.makeText(this, "Shop clicked!", Toast.LENGTH_SHORT).show()
             isShopVisible = !isShopVisible
             recyclerView.visibility = if (isShopVisible) View.VISIBLE else View.GONE
             shopBackgroundView.visibility = if (isShopVisible) View.VISIBLE else View.GONE
+
+            // Cacher le bouton PLAY quand le shop est visible
+            playButton.visibility = if (isShopVisible) View.GONE else View.VISIBLE
+
+            // Optionnellement, cacher aussi d'autres éléments comme le logo et le container de score
+            findViewById<ImageView>(R.id.logoDolphin).visibility = if (isShopVisible) View.GONE else View.VISIBLE
+            findViewById<LinearLayout>(R.id.scoreContainer).visibility = if (isShopVisible) View.GONE else View.VISIBLE
         }
 
         db.collection("Boutique").get()
