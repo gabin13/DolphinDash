@@ -1,12 +1,12 @@
 package com.example.test
 import MarginItemDecoration
 import android.content.Context
-import android.os.Build
 import android.os.Bundle
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.example.test.api.ApiServer
 import android.content.Intent
 import android.os.Vibrator
 import android.util.Log
@@ -32,12 +32,15 @@ class MainActivity : AppCompatActivity() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: ItemAdapter
     private val itemList = mutableListOf<Item>()
+    private var apiServer: ApiServer? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
         val spanCount = 2 // number of columns
+
+        apiServer = ApiServer(this)
+        
         recyclerView = findViewById(R.id.recyclerView)
         recyclerView.layoutManager = GridLayoutManager(this, spanCount)
         adapter = ItemAdapter(this, itemList)
@@ -101,7 +104,11 @@ class MainActivity : AppCompatActivity() {
 
         val scoresButton = findViewById<ImageButton>(R.id.scoresButton)
         scoresButton.setOnClickListener {
-            Toast.makeText(this, "Missions clicked!", Toast.LENGTH_SHORT).show()
+            // Modification ici pour lancer l'activité des missions
+            val intent = Intent(this, MissionsActivity::class.java)
+            startActivity(intent)
+            // Toast optionnel
+            Toast.makeText(this, "Missions", Toast.LENGTH_SHORT).show()
         }
 
         val shopBackgroundView = findViewById<View>(R.id.shopBackground)
@@ -120,7 +127,25 @@ class MainActivity : AppCompatActivity() {
             findViewById<ImageView>(R.id.logoDolphin).visibility = if (isShopVisible) View.GONE else View.VISIBLE
             findViewById<LinearLayout>(R.id.scoreContainer).visibility = if (isShopVisible) View.GONE else View.VISIBLE
         }
+
+        db.collection("Boutique").get()
+            .addOnSuccessListener { querySnapshot ->
+                Log.d("FirestoreTest", "Nombre d'items dans Boutique: ${querySnapshot.size()}")
+                for (document in querySnapshot.documents) {
+                    Log.d("FirestoreTest", "Item: ${document.id} => ${document.data}")
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.e("FirestoreTest", "Erreur lors de la récupération des items", e)
+            }
     }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        // Arrêter le serveur API lorsque l'activité est détruite
+        apiServer?.stop()
+    }
+
     // Load vibration setting from SharedPreferences
     private fun loadVibrationSetting(): Boolean {
         val sharedPreferences = getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
@@ -191,6 +216,5 @@ class MainActivity : AppCompatActivity() {
         val editor = sharedPreferences.edit()
         editor.putBoolean("SOUND_PREF", isEnabled)  // Save the vibration setting
         editor.apply()
-
     }
 }

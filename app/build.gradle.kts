@@ -53,6 +53,13 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore-ktx")
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation("com.google.firebase:firebase-database-ktx")
+    // NanoHTTPD pour créer un serveur HTTP léger
+    implementation("org.nanohttpd:nanohttpd:2.3.1")
+
+    // Coroutines pour gérer les opérations asynchrones
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.1")
 
     // Ajout de Glide
     implementation("com.github.bumptech.glide:glide:4.15.1")
