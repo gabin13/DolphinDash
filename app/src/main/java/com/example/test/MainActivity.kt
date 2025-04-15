@@ -1,13 +1,12 @@
 package com.example.test
 import MarginItemDecoration
 import android.content.Context
-import android.os.Build
 import android.os.Bundle
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.example.test.api.ApiServer
+import com.example.test.api.boutique.ApiServer
 import android.content.Intent
 import android.os.Vibrator
 import android.util.Log
@@ -22,11 +21,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
-import java.net.HttpURLConnection
-import java.net.InetAddress
-import java.net.NetworkInterface
-import java.net.URL
-import java.util.Collections
 
 
 class MainActivity : AppCompatActivity() {
@@ -124,40 +118,6 @@ class MainActivity : AppCompatActivity() {
             shopBackgroundView.visibility = if (isShopVisible) View.VISIBLE else View.GONE
         }
 
-        // Fonction pour obtenir l'adresse IP
-        fun getIPAddress(useIPv4: Boolean): String {
-            try {
-                val interfaces = Collections.list(NetworkInterface.getNetworkInterfaces())
-                for (intf in interfaces) {
-                    val addrs = Collections.list(intf.inetAddresses)
-                    for (addr in addrs) {
-                        if (!addr.isLoopbackAddress) {
-                            val sAddr = addr.hostAddress
-                            val isIPv4 = sAddr.indexOf(':') < 0
-
-                            if (useIPv4) {
-                                if (isIPv4)
-                                    return sAddr
-                            } else {
-                                if (!isIPv4) {
-                                    val delim = sAddr.indexOf('%')
-                                    return if (delim < 0) sAddr.uppercase() else sAddr.substring(0, delim).uppercase()
-                                }
-                            }
-                        }
-                    }
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-            return "127.0.0.1"
-        }
-
-        val testApiButton = findViewById<Button>(R.id.testApiButton)
-        testApiButton.setOnClickListener {
-            testLocalApi()
-        }
-
         db.collection("Boutique").get()
             .addOnSuccessListener { querySnapshot ->
                 Log.d("FirestoreTest", "Nombre d'items dans Boutique: ${querySnapshot.size()}")
@@ -168,40 +128,12 @@ class MainActivity : AppCompatActivity() {
             .addOnFailureListener { e ->
                 Log.e("FirestoreTest", "Erreur lors de la récupération des items", e)
             }
-
-        val ipAddress = getIPAddress(true)
-        Toast.makeText(this, "API disponible sur: http://$ipAddress:8080/api/", Toast.LENGTH_LONG).show()
     }
 
     override fun onDestroy() {
         super.onDestroy()
         // Arrêter le serveur API lorsque l'activité est détruite
         apiServer?.stop()
-    }
-
-    private fun testLocalApi() {
-        // Test de l'API en local
-        Thread {
-            try {
-                val url = URL("http://10.0.2.15:8080/api/")
-                val connection = url.openConnection() as HttpURLConnection
-                connection.requestMethod = "GET"
-                connection.connectTimeout = 5000
-
-                val responseCode = connection.responseCode
-                val response = connection.inputStream.bufferedReader().use { it.readText() }
-
-                runOnUiThread {
-                    Toast.makeText(this, "API Test: $responseCode\n$response", Toast.LENGTH_LONG).show()
-                    Log.d("ApiTest", "Response: $responseCode - $response")
-                }
-            } catch (e: Exception) {
-                Log.e("ApiTest", "Erreur lors du test de l'API", e)
-                runOnUiThread {
-                    Toast.makeText(this, "Erreur API: ${e.message}", Toast.LENGTH_LONG).show()
-                }
-            }
-        }.start()
     }
 
     // Load vibration setting from SharedPreferences

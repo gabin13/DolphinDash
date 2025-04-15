@@ -1,4 +1,4 @@
-package com.example.test.api
+package com.example.test.api.boutique
 
 import com.example.test.Item
 import com.google.android.gms.tasks.Task

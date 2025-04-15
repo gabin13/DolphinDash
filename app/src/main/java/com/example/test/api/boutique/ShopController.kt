@@ -1,9 +1,8 @@
-package com.example.test.api
+package com.example.test.api.boutique
 
 import android.content.Context
 import android.util.Log
 import com.example.test.Item
-import com.google.android.gms.tasks.Task
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
@@ -60,7 +59,7 @@ class ShopController(private val context: Context) {
                     }
 
                     // Mettre à jour un item
-                    segments.size == 1 && method == "PUT" && body != null -> {
+                    segments.size == 1 && method == "POST" && body != null -> {
                         val itemId = segments[0]
                         updateItem(itemId, body)
                     }
@@ -103,7 +102,6 @@ class ShopController(private val context: Context) {
         }
 
         val responseStr = jsonArray.toString()
-        Log.d("ShopController", "Réponse complète: $responseStr")
         return responseStr
     }
 
