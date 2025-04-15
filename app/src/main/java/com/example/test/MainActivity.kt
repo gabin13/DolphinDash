@@ -1,12 +1,12 @@
 package com.example.test
 import MarginItemDecoration
 import android.content.Context
-import android.os.Build
 import android.os.Bundle
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.example.test.api.boutique.ApiServer
 import android.content.Intent
 import android.os.Vibrator
 import android.util.Log
@@ -30,10 +30,13 @@ class MainActivity : AppCompatActivity() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: ItemAdapter
     private val itemList = mutableListOf<Item>()
+    private var apiServer: ApiServer? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        apiServer = ApiServer(this)
 
         recyclerView = findViewById(R.id.recyclerView)
         recyclerView.layoutManager = LinearLayoutManager(this)
@@ -114,7 +117,25 @@ class MainActivity : AppCompatActivity() {
             recyclerView.visibility = if (isShopVisible) View.VISIBLE else View.GONE
             shopBackgroundView.visibility = if (isShopVisible) View.VISIBLE else View.GONE
         }
+
+        db.collection("Boutique").get()
+            .addOnSuccessListener { querySnapshot ->
+                Log.d("FirestoreTest", "Nombre d'items dans Boutique: ${querySnapshot.size()}")
+                for (document in querySnapshot.documents) {
+                    Log.d("FirestoreTest", "Item: ${document.id} => ${document.data}")
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.e("FirestoreTest", "Erreur lors de la récupération des items", e)
+            }
     }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        // Arrêter le serveur API lorsque l'activité est détruite
+        apiServer?.stop()
+    }
+
     // Load vibration setting from SharedPreferences
     private fun loadVibrationSetting(): Boolean {
         val sharedPreferences = getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
