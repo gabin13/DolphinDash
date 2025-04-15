@@ -97,7 +97,7 @@ class GameView(context: Context) : SurfaceView(context), Runnable {
         var currentFrame = 0
         var lastFrameChangeTime = 0L
 
-        private val hitboxScale = 0.6f
+        private val hitboxScale = 0.3f
         private val hitboxOffsetX = (width * (1 - hitboxScale) / 2)
         private val hitboxOffsetY = (height * (1 - hitboxScale) / 2)
         private val hitboxWidth = width * hitboxScale

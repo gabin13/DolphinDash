@@ -121,6 +121,9 @@
         android:background="#AA000000"
         android:visibility="gone" />
 
+
+    
+
     <!-- RecyclerView des items -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
@@ -128,6 +131,8 @@
         android:layout_height="match_parent"
         android:visibility="gone"
         android:padding="8dp" />
+
+
 
     <!-- Bottom Navigation Container -->
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -187,6 +192,7 @@
         </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
+
 
 
 
