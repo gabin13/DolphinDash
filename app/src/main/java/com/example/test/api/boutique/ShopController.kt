@@ -27,50 +27,66 @@ class ShopController(private val context: Context) {
     suspend fun handleRequest(path: String, method: String, body: String? = null): String {
         return withContext(Dispatchers.IO) {
             try {
+                Log.d(TAG, "Traitement de la requête: $method $path")
                 val segments = path.split("/").filter { it.isNotEmpty() }
 
                 when {
                     // Liste des items
-                    segments.isEmpty() && method == "GET" -> {
+                    path.isEmpty() && method == "GET" -> {
+                        Log.d(TAG, "Route: GET /")
                         getAllItems()
                     }
 
                     // Récupérer un item spécifique
-                    segments.size == 1 && method == "GET" -> {
+                    segments.size == 1 && segments[0] != "search" && segments[0] != "price" && method == "GET" -> {
                         val itemId = segments[0]
+                        Log.d(TAG, "Route: GET /$itemId")
                         getItemById(itemId)
                     }
 
                     // Recherche d'items par nom
                     segments.size == 2 && segments[0] == "search" && method == "GET" -> {
                         val query = segments[1]
+                        Log.d(TAG, "Route: GET /search/$query")
                         searchItems(query)
                     }
 
                     // Recherche d'items par prix max
                     segments.size == 2 && segments[0] == "price" && method == "GET" -> {
                         val maxPrice = segments[1].toIntOrNull() ?: 0
+                        Log.d(TAG, "Route: GET /price/$maxPrice")
                         getItemsBelowPrice(maxPrice)
                     }
 
                     // Ajouter un item
-                    segments.isEmpty() && method == "POST" && body != null -> {
+                    path.isEmpty() && method == "POST" && body != null -> {
+                        Log.d(TAG, "Route: POST /")
                         addItem(body)
                     }
 
                     // Mettre à jour un item
+                    segments.size == 1 && method == "PUT" && body != null -> {
+                        val itemId = segments[0]
+                        Log.d(TAG, "Route: PUT /$itemId")
+                        updateItem(itemId, body)
+                    }
+
+                    // Pour compatibilité avec l'ancien code qui utilisait POST pour mise à jour
                     segments.size == 1 && method == "POST" && body != null -> {
                         val itemId = segments[0]
+                        Log.d(TAG, "Route: POST /$itemId (considéré comme PUT)")
                         updateItem(itemId, body)
                     }
 
                     // Supprimer un item
                     segments.size == 1 && method == "DELETE" -> {
                         val itemId = segments[0]
+                        Log.d(TAG, "Route: DELETE /$itemId")
                         deleteItem(itemId)
                     }
 
                     else -> {
+                        Log.w(TAG, "Route non reconnue: $method $path")
                         createErrorResponse("Route non valide ou méthode non supportée")
                     }
                 }
@@ -85,7 +101,7 @@ class ShopController(private val context: Context) {
         val items = shopService.getAllItems().await()
         val jsonArray = JSONArray()
 
-        Log.d("ShopController", "Nombre d'items récupérés: ${items.documents.size}")
+        Log.d(TAG, "Nombre d'items récupérés: ${items.documents.size}")
 
         for (document in items.documents) {
             val item = document.toObject(Item::class.java)
@@ -97,7 +113,7 @@ class ShopController(private val context: Context) {
                     put("imageURL", it.imageURL)
                 }
                 jsonArray.put(itemJson)
-                Log.d("ShopController", "Item ajouté à la réponse: ${document.id} - ${it.nom}")
+                Log.d(TAG, "Item ajouté à la réponse: ${document.id} - ${it.nom}")
             }
         }
 
@@ -139,7 +155,7 @@ class ShopController(private val context: Context) {
                 jsonArray.put(itemJson)
             }
         }
-        Log.d("ShopController", "Réponse renvoyée: $jsonArray")
+        Log.d(TAG, "Réponse renvoyée: $jsonArray")
         return jsonArray.toString()
     }
 
@@ -159,7 +175,7 @@ class ShopController(private val context: Context) {
                 jsonArray.put(itemJson)
             }
         }
-        Log.d("ShopController", "Réponse renvoyée: $jsonArray")
+        Log.d(TAG, "Réponse renvoyée: $jsonArray")
         return jsonArray.toString()
     }
 

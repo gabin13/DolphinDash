@@ -6,7 +6,7 @@ import android.widget.Button
 import android.widget.ImageButton
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.example.test.api.boutique.ApiServer
+import com.example.test.api.ApiServer
 import android.content.Intent
 import android.os.Vibrator
 import android.util.Log
@@ -106,7 +106,11 @@ class MainActivity : AppCompatActivity() {
 
         val scoresButton = findViewById<ImageButton>(R.id.scoresButton)
         scoresButton.setOnClickListener {
-            Toast.makeText(this, "Missions clicked!", Toast.LENGTH_SHORT).show()
+            // Modification ici pour lancer l'activité des missions
+            val intent = Intent(this, MissionsActivity::class.java)
+            startActivity(intent)
+            // Toast optionnel
+            Toast.makeText(this, "Missions", Toast.LENGTH_SHORT).show()
         }
 
         val shopBackgroundView = findViewById<View>(R.id.shopBackground)
@@ -206,6 +210,5 @@ class MainActivity : AppCompatActivity() {
         val editor = sharedPreferences.edit()
         editor.putBoolean("SOUND_PREF", isEnabled)  // Save the vibration setting
         editor.apply()
-
     }
 }
